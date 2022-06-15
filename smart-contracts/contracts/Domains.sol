@@ -22,7 +22,7 @@ contract Domains {
 
     // get price of domain based on length
     function price(string calldata name) public pure returns(uint) {
-        uint len = StringUtills.strlen(name);
+        uint len = StringUtils.strlen(name);
         require(len > 0);
         if(len == 3) {
             return 5 * 10**16; // 5 MATIC = 5_000_000_000_000_000_000 (18 decimals). We're going with 0.05 Matic cause the faucets don't give a lot
