@@ -5,7 +5,7 @@ export const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 // Add the domain you will be minting
 export const tld = '.nerd';
-export const CONTRACT_ADDRESS = '0xA7cabce1EE187929bB76cF97be8A70E304290471';
+export const CONTRACT_ADDRESS = '0xBFb99E7e9a510c906d2911519bD70Fb9BB3BA4Bb';
 export const contractAbi = [
     {
         "inputs": [
