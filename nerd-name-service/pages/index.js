@@ -20,14 +20,16 @@ export default function Home() {
       <div className={styles.container}>
         <div className={styles.headerContainer}>
 
-          <div className={styles.left}>
-            <h1 className={styles.title}>
-              🐱‍👤 Nerd Name Service
-            </h1>
-            <p className={styles.subtitle}>
-              Welcome to Your immortal API on the blockchain!
-            </p>
-          </div>
+          {/* <div className={styles.left}> */}
+
+          <img alt="Nerds Icon" className={styles.nerdIcon} src="/assets/nerd_icon.png" />
+          <h1 className={styles.title}>
+            Nerd Name Service
+          </h1>
+          <p className={styles.subtitle}>
+            Welcome to Your immortal API on the blockchain!
+          </p>
+          {/* </div> */}
         </div>
 
 

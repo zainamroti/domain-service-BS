@@ -141,6 +141,11 @@
     width: 35px;
     height: 35px;
   }
+
+  .nerdIcon {
+    width: 55px;
+    height: 75px;
+  }
   
   .footerText {
     color: white;
