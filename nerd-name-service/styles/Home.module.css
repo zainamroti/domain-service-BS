@@ -78,7 +78,35 @@
   .connectWalletContainer img {
     padding-bottom: 20px;
   }
+  .connectedWalletContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: auto;
+    max-width: 350px;
+  }
+
+  .connectedWalletContainer img {
+    padding-block: 20px;
+  }
+
   
+  .connectedWalletButton {
+    background-image: linear-gradient(
+      to right,
+      #ff9e77 0%,
+      #ffb17a 0%,
+      #ffd27f 21%,
+      #c3f985 52%,
+      #55cf90 78%,
+      #2ab17b 100%
+    );
+    background-size: 200% 200%;
+    width: 50%;
+    animation: gradient-animation 4s ease infinite;
+  }
+
   .connectWalletButton {
     background-image: linear-gradient(
       to right,

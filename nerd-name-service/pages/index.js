@@ -1,10 +1,10 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
-import { TWITTER_HANDLE, TWITTER_LINK } from '../constants'
+import { TWITTER_HANDLE, TWITTER_LINK, CONTRACT_ADDRESS, tld, contractAbi } from '../constants'
 import LoadingIndicator from '../components/LoadingIndicator'
 import { useState, useEffect, useRef } from 'react'
-import { providers, Contract } from "ethers";
+import { providers, Contract, utils } from "ethers";
 import Web3Modal from "web3modal";
 
 export default function Home() {
@@ -14,6 +14,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   // Create a reference to the Web3 Modal (used for connecting to Metamask) which persists as long as the page is open
   const web3ModalRef = useRef();
+
+  // Add some state data propertie
+  const [domain, setDomain] = useState('');
+  const [record, setRecord] = useState('');
+
 
   /**
      * Returns a Provider or Signer object representing the Ethereum RPC with or without the
@@ -71,11 +76,12 @@ export default function Home() {
         return <LoadingIndicator />;
       }
       return (
-        <div className={styles.connectWalletContainer}>
-          <img src="/assets/nerdzone.gif" alt="Nerd gif" />
-          <button className={`${styles.ctaButton} ${styles.connectWalletButton}`}>
+        <div className={styles.connectedWalletContainer}>
+          <button size="small" className={`${styles.ctaButton} ${styles.connectedWalletButton}`}>
             Connected
           </button>
+          <img src="/assets/nerdzone.gif" alt="Nerd gif" />
+          {renderInputForm()}
         </div>
       )
     } else {
@@ -88,10 +94,40 @@ export default function Home() {
         </div>
       );
     }
+  }
 
+  // Form to enter domain name and data
+  const renderInputForm = () => {
+    return (
+      <div className={styles.formContainer}>
+        <div className={styles.firstRow}>
+          <input
+            type="text"
+            value={domain}
+            placeholder='domain'
+            onChange={e => setDomain(e.target.value)}
+          />
+          <p className={styles.tld}> {tld} </p>
+        </div>
 
+        <input
+          type="text"
+          value={record}
+          placeholder='whats ur nerd super power?'
+          onChange={e => setRecord(e.target.value)}
+        />
 
+        <div className={styles.buttonContainer}>
+          <button onClick={mintDomain} className={`${styles.ctaButton} ${styles.mintButton}`} disabled={null} >
+            Mint
+          </button>
+          <button className={`${styles.ctaButton} ${styles.mintButton}`} disabled={null} onClick={null}>
+            Set data
+          </button>
+        </div>
 
+      </div>
+    );
   }
 
   // useEffects are used to react to changes in state of the website
@@ -110,6 +146,53 @@ export default function Home() {
       // connectWallet();
     }
   }, [walletConnected]);
+
+  const mintDomain = async () => {
+    // Don't run if the domain is empty
+    if (!domain) { return }
+    // Alert the user if the domain is too short
+    if (domain.length < 3) {
+      alert('Domain must be at least 3 characters long');
+      return;
+    }
+    // Calculate price based on length of domain (change this to match your contract)	
+    // 3 chars = 0.5 MATIC, 4 chars = 0.3 MATIC, 5 or more = 0.1 MATIC
+    const price = domain.length === 3 ? '0.05' : domain.length === 4 ? '0.03' : '0.01';
+    console.log("Minting domain", domain, "with price", price);
+    try {
+
+      // if (web3ModalRef.current) {
+
+      const signer = await getProviderOrSigner(true);
+      const contract = new Contract(CONTRACT_ADDRESS, contractAbi, signer);
+
+      console.log("Going to pop wallet now to pay gas...")
+      let tx = await contract.register(domain, { value: utils.parseEther(price) });
+      // Wait for the transaction to be mined
+      const receipt = await tx.wait();
+
+      // Check if the transaction was successfully completed
+      if (receipt.status === 1) {
+        console.log("Domain minted! https://mumbai.polygonscan.com/tx/" + tx.hash);
+
+        // Set the record for the domain
+        tx = await contract.setRecord(domain, record);
+        await tx.wait();
+
+        console.log("Record set! https://mumbai.polygonscan.com/tx/" + tx.hash);
+
+        setRecord('');
+        setDomain('');
+      }
+      else {
+        alert("Transaction failed! Please try again");
+      }
+      // }
+    }
+    catch (error) {
+      console.log(error);
+    }
+  }
 
 
 
@@ -150,6 +233,7 @@ export default function Home() {
             target="_blank"
             rel="noreferrer"
           >{`built with @${TWITTER_HANDLE} `}</a>
+          &nbsp;
           <a
             className={styles.footerText}
             href={'https://twitter.com/zainamroti'}
