@@ -8,6 +8,23 @@ const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 export default function Home() {
+
+
+
+
+  // Render Methods
+  const renderNotConnectedContainer = () => (
+    <div className={styles.connectWalletContainer}>
+      <img src="/assets/nerdzone.git" alt="Nerd gif" />
+      <button className={`${styles.ctaButton} ${styles.connectWalletButton}`}>
+        {/* <button className="cta-button connect-wallet-button"> */}
+        Connect Wallet
+      </button>
+    </div>
+  );
+
+
+
   return (
     <div className={styles.App}>
       <Head>
@@ -31,6 +48,10 @@ export default function Home() {
           </p>
           {/* </div> */}
         </div>
+
+        {renderNotConnectedContainer()}
+
+
 
 
         <div className={styles.footerContainer}>
