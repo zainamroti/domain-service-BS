@@ -16,6 +16,10 @@ contract Domains is ERC721URIStorage {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
 
+    error Unauthorized();
+    error AlreadyRegistered();
+    error InvalidName(string name);
+
     address payable owner;
 
     // Domain TLD!
@@ -27,15 +31,29 @@ contract Domains is ERC721URIStorage {
 
     // A mapping to store user names;
     mapping(string => address) public domains;
-
     //A mapping to store values;
     mapping(string => string) public records;
+    // to store mint IDs with domain names 
+    mapping (uint => string) public names;
 
   constructor(string memory _tld) payable ERC721("Nerd Name Service", "NNS"){
     owner = payable(msg.sender);
     tld = _tld;
     console.log("%s name service deployed", _tld);
   }
+
+
+    // to fetch all minted domains
+    function getAllNames() public view returns (string[] memory) {
+    console.log("Getting all names from contract");
+    string[] memory allNames = new string[](_tokenIds.current());
+    for (uint i = 0; i < _tokenIds.current(); i++) {
+        allNames[i] = names[i];
+        console.log("Name for token %d is %s", i, allNames[i]);
+    }
+
+    return allNames;
+    }
 
     // get price of domain based on length
     function price(string calldata name) public pure returns(uint) {
@@ -50,12 +68,18 @@ contract Domains is ERC721URIStorage {
         }
     }
 
+    function valid(string calldata name) public pure returns(bool) {
+    return StringUtils.strlen(name) >= 3 && StringUtils.strlen(name) <= 10;
+    }
+
+
 
 // A register funciton that adds their names to our mapping
 
     function register(string calldata name) public payable{
         require(domains[name] == address(0), "Name is already registered");
-
+        if (!valid(name)) revert InvalidName(name);
+        
         uint _price = price(name);
         require(msg.value >= _price, "Not enough Matic paid");
 
@@ -94,6 +118,7 @@ contract Domains is ERC721URIStorage {
         _setTokenURI(newRecordId, finalTokenUri);
         
         domains[name] = msg.sender;
+        names[newRecordId] = name;
         console.log("%s has registered a domain!",msg.sender);
         _tokenIds.increment();
     }
