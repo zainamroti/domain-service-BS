@@ -12,6 +12,8 @@ import "hardhat/console.sol";
 
 contract Domains is ERC721URIStorage {
 
+    event NewNNSDomainMinted(address sender, uint256 tokenId);
+
     // Magic given to us by OpenZeppelin to help us keep track of tokenIds.
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
@@ -75,7 +77,33 @@ contract Domains is ERC721URIStorage {
 
 
 // A register funciton that adds their names to our mapping
+    //New IPFS URI method to store NFT data + metadata off chain on IPFS
+    function register(string calldata name, string memory ipfsTokenURI) public payable{
+        require(domains[name] == address(0), "Name is already registered");
+        if (!valid(name)) revert InvalidName(name);
+        
+        uint _price = price(name);
+        require(msg.value >= _price, "Not enough Matic paid");
+        uint256 newRecordId = _tokenIds.current();
 
+
+        console.log("\n--------------------");
+        console.log(ipfsTokenURI);
+        console.log("--------------------\n");
+
+
+        _safeMint(msg.sender, newRecordId);
+        _setTokenURI(newRecordId, ipfsTokenURI);
+        
+        domains[name] = msg.sender;
+        names[newRecordId] = name;
+        console.log("%s has registered a domain!",msg.sender);
+        _tokenIds.increment();
+        
+        emit NewNNSDomainMinted(msg.sender, newItemId);
+    }
+
+    //Old normal mint -- storing nft data on chain
     function register(string calldata name) public payable{
         require(domains[name] == address(0), "Name is already registered");
         if (!valid(name)) revert InvalidName(name);
@@ -122,6 +150,9 @@ contract Domains is ERC721URIStorage {
         console.log("%s has registered a domain!",msg.sender);
         _tokenIds.increment();
     }
+
+    
+
 
     // This will give us the domain owners' address
     function getAddress(string calldata name) public view returns (address) {
