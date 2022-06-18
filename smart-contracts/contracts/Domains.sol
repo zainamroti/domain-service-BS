@@ -99,8 +99,8 @@ contract Domains is ERC721URIStorage {
         names[newRecordId] = name;
         console.log("%s has registered a domain!",msg.sender);
         _tokenIds.increment();
-        
-        emit NewNNSDomainMinted(msg.sender, newItemId);
+
+        emit NewNNSDomainMinted(msg.sender, newRecordId);
     }
 
     //Old normal mint -- storing nft data on chain

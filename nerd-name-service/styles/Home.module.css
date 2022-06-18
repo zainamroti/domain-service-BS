@@ -1,5 +1,5 @@
 .App {
-    height: 100%;
+    height: 100vh;
     background-color: #0d1116;
     text-align: center;
     color: #0d1116;
@@ -7,7 +7,7 @@
   
   
   .container {
-    height: 100%;
+    height: 100vh;
     background-color: #181818;
     display: flex;
     flex-direction: column;
@@ -31,8 +31,8 @@
   }
   
   .left{
-    text-align: left;
-    margin-left: 10%;
+    text-align: center;
+    margin-left: 35%;
   }
   
   .logo{
@@ -43,6 +43,8 @@
   
   .right{
     display: flex;
+    justify-content: center;
+    align-items: center;
     background: black;
     border-radius: 16px;
     padding: 12px 20px;

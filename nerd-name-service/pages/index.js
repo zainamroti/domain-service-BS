@@ -1,11 +1,21 @@
 import Head from 'next/head'
 import Image from 'next/image'
 import styles from '../styles/Home.module.css'
-import { TWITTER_HANDLE, TWITTER_LINK, CONTRACT_ADDRESS, tld, contractAbi } from '../constants'
+import { TWITTER_HANDLE, TWITTER_LINK, CONTRACT_ADDRESS, tld, contractAbi, svgPartOne, svgPartTwo } from '../constants'
 import LoadingIndicator from '../components/LoadingIndicator'
 import { useState, useEffect, useRef } from 'react'
 import { providers, Contract, utils } from "ethers";
 import Web3Modal from "web3modal";
+import { create } from 'ipfs-http-client'
+
+const ifpsConfig = {
+  // host: "ipfs.infura.io",
+  host: "infura-ipfs.io",
+  port: 5001,
+  protocol: "https",
+};
+
+const ipfs = create(ifpsConfig);
 
 export default function Home() {
   // walletConnected keep track of whether the user's wallet is connected or not
@@ -77,6 +87,8 @@ export default function Home() {
       console.error(err);
     }
   };
+
+
 
 
 
@@ -230,6 +242,55 @@ export default function Home() {
     }
   }, [walletConnected]);
 
+
+
+
+  /**
+   * Upload to IPFS and get the SVG's Content ID (CID)
+   */
+  const uploadToIPFS = async (svg) => {
+    let url;
+    /* upload the file */
+    try {
+      const base64SVG = Buffer.from(svg).toString('base64');
+
+      console.log(`BSCG> ${base64SVG}`);
+
+
+      // // We set the title of our NFT as the generated word.
+      const metaData = '{"name": "' + domain + tld + '","description": "A domain on the Nerd name service", "image": "data:image/svg+xml;base64,' + base64SVG + '"}';
+      // We set the title of our NFT as the generated word.
+      // const metaData = `'{"name": "My 3w NFT","description": "A highly acclaimed collection of Legal NFTs.","image": "data:image/svg+xml;base64,${base64SVG}}"'`;
+
+
+      const base64JsonMetadata = Buffer.from(metaData).toString('base64');
+      // data:application/json;base64,
+
+      console.log(`MEtadata > ${base64JsonMetadata}`)
+      const jsonFile = `data:application/json;base64,${base64JsonMetadata}`;
+      const added = await ipfs.add(jsonFile);
+      url = `https://infura-ipfs.io/ipfs/${added.path}`
+      console.log(`Added svg: ${JSON.stringify(added)} && url: ${url}`);
+    } catch (error) {
+      console.log(`Error IPFS> ${error}`)
+    }
+    return url;
+
+  }
+
+  const getNFTcID = async () => {
+
+    const finalSvg = `${svgPartOne}${domain}${svgPartTwo}`;
+
+    console.log(`Getting Domain NFT URL > SVg ==>   ${finalSvg}`);
+    const url = await uploadToIPFS(finalSvg);
+    return url;
+    //Generate 3 word Square SVG NFTs here  
+    //upload them to IPFS 
+    //Then return the IPFS Content Hash ID to call MINT function.
+  }
+
+
   const mintDomain = async () => {
     // Don't run if the domain is empty
     if (!domain) { return }
@@ -253,7 +314,11 @@ export default function Home() {
       const contract = new Contract(CONTRACT_ADDRESS, contractAbi, signer);
 
       console.log("Going to pop wallet now to pay gas...")
-      let tx = await contract.register(domain, { value: utils.parseEther(price) });
+
+      let ipfsTokenURI = await getNFTcID();
+      // ipfsTokenURI = `ipfs://${ipfsTokenURI}`
+
+      let tx = await contract.register(domain, ipfsTokenURI, { value: utils.parseEther(price) });
       // Wait for the transaction to be mined
       const receipt = await tx.wait();
 
@@ -267,13 +332,14 @@ export default function Home() {
 
         console.log("Record set! https://mumbai.polygonscan.com/tx/" + tx.hash);
 
+        setRecord('');
+        setDomain('');
+
         // Call fetchMints after 2 seconds
         setTimeout(() => {
           fetchMints();
         }, 2000);
 
-        setRecord('');
-        setDomain('');
       }
       else {
         alert("Transaction failed! Please try again");
@@ -300,9 +366,9 @@ export default function Home() {
       await tx.wait();
       console.log("Record set https://mumbai.polygonscan.com/tx/" + tx.hash);
 
-      fetchMints();
       setRecord('');
       setDomain('');
+      fetchMints();
       // }
     } catch (error) {
       console.log(error);
@@ -401,21 +467,25 @@ export default function Home() {
       <div className={styles.container}>
         <div className={styles.headerContainer}>
 
-          {/* <div className={styles.left}> */}
-          <img alt="Nerds Icon" className={styles.nerdIcon} src="/assets/nerd_icon.png" />
-          <h1 className={styles.title}>
-            Nerd Name Service
-          </h1>
-          <p className={styles.subtitle}>
-            Welcome to Your immortal API on the blockchain!
-          </p>
-          {/* </div> */}
+          <header>
+            <div className={styles.left}>
 
-          {/* Display a logo and wallet connection status*/}
-          {/* <div className={styles.right}> */}
-          <img alt="Network logo" className={styles.logo} src={pattern.test(network) ? '/assets/polygonlogo.png' : "/assets/ethlogo.png"} />
-          {currentAccount ? <p> Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)} </p> : <p> Not connected </p>}
-          {/* </div> */}
+              <img alt="Nerds Icon" className={styles.nerdIcon} src="/assets/nerd_icon.png" />
+              <h1 className={styles.title}>
+                Nerd Name Service
+              </h1>
+              <p className={styles.subtitle}>
+                Welcome to Your immortal API on the blockchain!
+              </p>
+              
+            </div>
+
+            {/* Display a logo and wallet connection status*/}
+            <div className={styles.right}>
+              <img alt="Network logo" className={styles.logo} src={pattern.test(network) ? '/assets/polygonlogo.png' : "/assets/ethlogo.png"} />
+              {currentAccount ? <p> Wallet: {currentAccount.slice(0, 6)}...{currentAccount.slice(-4)} </p> : <p> Not connected </p>}
+            </div>
+          </header>
         </div>
 
         {renderNotConnectedContainer()}
